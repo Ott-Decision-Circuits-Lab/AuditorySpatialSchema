@@ -165,6 +165,8 @@ if isempty(fieldnames(TaskParameters))
     
     TaskParameters.GUI.RewardProbMax = 1; % upper boundary of reward probability, only for Block in RiskType
     TaskParameters.GUI.RewardProbMin = 0.4; % lower boundary of reward probability, only for Block in RiskType
+
+    TaskParameters.GUI.ToneDigitalAtt = -30; % lower boundary of reward probability, only for Block in RiskType
       
     TaskParameters.GUI.ToneRiskTable.ToneStartFreq = [2 10]'; % (kHz), only for Cue in RiskType
     TaskParameters.GUI.ToneRiskTable.ToneEndFreq = [2 10]'; % (kHz), features for sweep, only for Cue in RiskType
@@ -179,7 +181,7 @@ if isempty(fieldnames(TaskParameters))
     TaskParameters.GUI.RewardProbActualRight = TaskParameters.GUI.RewardProbRight; % Reward Probability of Right Poke, for all RiskType
     TaskParameters.GUIMeta.RewardProbActualRight.Style = 'text';
   
-    TaskParameters.GUIPanels.Reward = {'ToneRiskTable','RewardAmount','ExpressedAsExpectedValue','RiskType',...
+    TaskParameters.GUIPanels.Reward = {'ToneRiskTable','ToneDigitalAtt','RewardAmount','ExpressedAsExpectedValue','RiskType',...
                                        'RewardProbLeft','RewardProbRight','BlockLenMin',...
                                        'BlockLenMax','BlockLen','NextBlockTrialNumber',...
                                        'RewardProbMax','RewardProbMin',...

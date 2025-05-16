@@ -189,6 +189,9 @@ switch Mode
                 RightSound = [];
                 if StimulusTime > 0
                     LeftSound = GenerateRiskCue(fs, StimulusTime, 'Freq', TrialData.AuditoryCue(1,iTrial), TrialData.AuditoryCue(2,iTrial));
+                    if TrialData.AuditoryCue(1,iTrial)<5
+                        LeftSound = LeftSound*0.25;
+                    end
                     RightSound = LeftSound; %always stero when two speaker system
                 else
                     disp('StimulusTime in GUI should be a positive number. Empty track will be loaded.')
@@ -213,4 +216,7 @@ switch Mode
                 error("not implemented")
         end
 end % switch
+if isfield(BpodSystem.ModuleUSB, 'HiFi1')
+    Player.push();
+end
 end % function

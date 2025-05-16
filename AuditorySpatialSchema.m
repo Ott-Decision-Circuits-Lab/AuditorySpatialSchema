@@ -18,6 +18,7 @@ if ~BpodSystem.EmulatorMode % Sound/laser waveform generation is not compulsory 
         Laser = [];
         if isfield(BpodSystem.ModuleUSB, 'HiFi1')
             [Player, ~] = SetupHiFi(192000); % 192kHz = max sampling rate
+            Player.DigitalAttenuation_dB=TaskParameters.GUI.ToneDigitalAtt;
         end
         
         ChannelNumber = 4; % sound in Analogue Output module is always channel 1 & 2; laser is always channel 3 & 4
