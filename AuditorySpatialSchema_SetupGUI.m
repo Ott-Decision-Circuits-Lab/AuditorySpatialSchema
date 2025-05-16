@@ -1,4 +1,4 @@
-function TaskParameters = TwoArmBanditVariant_SetupGUI()
+function TaskParameters = AuditorySpatialSchema_SetupGUI()
 
 global BpodSystem
 
@@ -7,10 +7,11 @@ TaskParameters = BpodSystem.ProtocolSettings;
 
 if isempty(fieldnames(TaskParameters))
     %% general
-    TaskParameters.GUI.SessionDescription = 'First risk task'; % free space to document setting purposes
+    TaskParameters.GUI.SessionDescription = 'First spatial task'; % free space to document setting purposes
     TaskParameters.GUIMeta.SessionDescription.Style = 'edittext';
     
-    TaskParameters.GUI.Ports_LMR = '123'; % bpod port number for poke connection
+    TaskParameters.GUI.Ports_LMR = '234'; % bpod port number for goal pokes. for now LMR = left-most, middle, right-most
+    TaskParameters.GUI.Ports_Home  = '1'; % bpod port  number for home poke
     TaskParameters.GUI.EphysSession = false;
     TaskParameters.GUIMeta.EphysSession.Style = 'checkbox';
     TaskParameters.GUI.Wire1VideoTrigger = 1;
@@ -42,11 +43,11 @@ if isempty(fieldnames(TaskParameters))
     TaskParameters.GUI.StartNewTrialTimeOut = 3; % (s), for the case where subject starts a new trial by choosing the centre poke after stimulus
     %{it may need an extra GracePeriod for the decision of starting a new task}
     
-    TaskParameters.GUI.ITI = 3; % end of trial ITI
+    TaskParameters.GUI.ITI = 1; % end of trial ITI
     TaskParameters.GUI.VI = false; % exprnd based on ITI
     TaskParameters.GUIMeta.VI.Style = 'checkbox';
     
-    TaskParameters.GUIPanels.General = {'SessionDescription', 'Ports_LMR', 'EphysSession',...
+    TaskParameters.GUIPanels.General = {'SessionDescription', 'Ports_LMR','Ports_Home', 'EphysSession',...
                                         'Wire1VideoTrigger',...
                                         'PreITI', 'WaitCInMax', 'ChoiceDeadline',...
                                         'NoDecisionTimeOut', 'NoDecisionFeedback',...
@@ -81,7 +82,7 @@ if isempty(fieldnames(TaskParameters))
     TaskParameters.GUI.RenewBrokeFixation = false; % if true, BrokeFixation state transits to WaitCIn instead of ITI
     TaskParameters.GUIMeta.RenewBrokeFixation.Style = 'checkbox';
 
-    TaskParameters.GUI.StimulusTime = 0.35; % legnth of stimulus reception, also how long the animal is required to sample (to avoid random decision)
+    TaskParameters.GUI.StimulusTime = 0.3; % legnth of stimulus reception, also how long the animal is required to sample (to avoid random decision)
     
     TaskParameters.GUI.SamplingGrace = 0; % allowance for brief C_out and then C_in, for flickering action/device
     TaskParameters.GUI.EarlyWithdrawalTimeOut = 1; % penalty for C_out before stimulus delivery ends
@@ -148,12 +149,12 @@ if isempty(fieldnames(TaskParameters))
     TaskParameters.GUI.ExpressedAsExpectedValue = false; %
     TaskParameters.GUIMeta.ExpressedAsExpectedValue.Style = 'checkbox'; % if true, reward probability = 1 while reward amount discounted by the set probability
     
-    TaskParameters.GUI.RiskType = 1;
+    TaskParameters.GUI.RiskType = 5;
     TaskParameters.GUIMeta.RiskType.Style = 'popupmenu';
     TaskParameters.GUIMeta.RiskType.String = {'Fix', 'BlockRand', 'BlockFix', 'BlockFixHolding', 'Cued', 'BlockCued', 'CuedBlockRatio', 'CuedBlockITI', 'CuedBlockTau', 'BlockRandHolding'}; % decide how reward probability is expressed: Fix, based on RewardProbLeft value to express fix RewardProb; BlockRand, randomly draw a value between Min and Max and assign; BlockFix, based on Max and Min and reverse L-R value; Cue, cued by Tone
     
-    TaskParameters.GUI.RewardProbLeft = 0.5; % Reward Probability of Left Poke, only for Fix in RiskType
-    TaskParameters.GUI.RewardProbRight = 0.5; % Reward Probability of Left Poke, only for Fix in RiskType
+    TaskParameters.GUI.RewardProbLeft = 1; % Reward Probability of Left Poke, only for Fix in RiskType
+    TaskParameters.GUI.RewardProbRight = 1; % Reward Probability of Left Poke, only for Fix in RiskType
     
     TaskParameters.GUI.BlockLenMin = 100; % lower boundart of BlockLen, only for Block in RiskType
     TaskParameters.GUI.BlockLenMax = 150; % upper boundart of BlockLen, only for Block in RiskType
@@ -165,12 +166,13 @@ if isempty(fieldnames(TaskParameters))
     TaskParameters.GUI.RewardProbMax = 1; % upper boundary of reward probability, only for Block in RiskType
     TaskParameters.GUI.RewardProbMin = 0.4; % lower boundary of reward probability, only for Block in RiskType
       
-    TaskParameters.GUI.ToneRiskTable.ToneStartFreq = [2 5 10 20]'; % (kHz), only for Cue in RiskType
-    TaskParameters.GUI.ToneRiskTable.ToneEndFreq = [2 5 10 20]'; % (kHz), features for sweep, only for Cue in RiskType
-    TaskParameters.GUI.ToneRiskTable.ToneCuedRewardProbability = [0.5, 0.6, 0.7, 0.8]'; % reward probability of corresponding tone, only for Cue in RiskType
+    TaskParameters.GUI.ToneRiskTable.ToneStartFreq = [2 10]'; % (kHz), only for Cue in RiskType
+    TaskParameters.GUI.ToneRiskTable.ToneEndFreq = [2 10]'; % (kHz), features for sweep, only for Cue in RiskType
+    TaskParameters.GUI.ToneRiskTable.ToneCuedRewardProbability = [1 1]'; % reward probability of corresponding tone, only for Cue in RiskType
+    TaskParameters.GUI.ToneRiskTable.ToneCuedRewardLocation = [1 5]'; % goal poke number (1-5, left to right in goal pokes)
     TaskParameters.GUIMeta.ToneRiskTable.Style = 'table';
-    TaskParameters.GUIMeta.ToneRiskTable.String = 'Tone cued reward probability';
-    TaskParameters.GUIMeta.ToneRiskTable.ColumnLabel = {'StartFreq', 'EndFreq', 'RewardProb'};
+    TaskParameters.GUIMeta.ToneRiskTable.String = 'Tone cued reward probability/location';
+    TaskParameters.GUIMeta.ToneRiskTable.ColumnLabel = {'StartFreq', 'EndFreq', 'RewardProb','Location'};
 
     TaskParameters.GUI.RewardProbActualLeft = TaskParameters.GUI.RewardProbLeft; % Reward Probability of Left Poke, for all RiskType
     TaskParameters.GUIMeta.RewardProbActualLeft.Style = 'text';

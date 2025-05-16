@@ -1,4 +1,4 @@
-function TwoArmBanditVariant_InitializeCustomDataFields(iTrial)
+function AuditorySpatialSchema_InitializeCustomDataFields(iTrial)
 %{ 
 Initializing trial data
 %}
@@ -83,10 +83,9 @@ TrialData.StartNewTrial(iTrial) = NaN; % only concern state 'StartNewTrial'
 TrialData.StartNewTrialSuccessful(iTrial) = NaN; % concern state 'StartNewTrialTimeOut'
 
 TrialData.TimeChoice(iTrial) = NaN;
-TrialData.ChoiceLeft(iTrial) = NaN; % True if a choice is made to the left poke (also include incorrect choice)
-TrialData.IncorrectChoice(iTrial) = NaN; % True if the choice is incorrect (only for 1-arm bandit/GUI.SingleSidePoke);
-% basically = LigthLeft & ChoiceLeft; doesn't necessary in the state of
-% IncorrectChoice (may end up in SkippedFeedback first)
+TrialData.GoalChoice(iTrial) = NaN; % True if a choice is made to the left poke (also include incorrect choice)
+TrialData.CorrectChoice(iTrial) = NaN; % True if the choice is incorrect (only for 1-arm bandit/GUI.SingleSidePoke);
+
 
 TrialData.FeedbackDelay(iTrial) = TaskParameters.GUI.FeedbackDelay;
 switch TaskParameters.GUIMeta.FeedbackDelayDistribution.String{TaskParameters.GUI.FeedbackDelayDistribution}
@@ -98,7 +97,7 @@ switch TaskParameters.GUIMeta.FeedbackDelayDistribution.String{TaskParameters.GU
             History = 50; % Rat: History = 50
             Crit = 0.8; % Rat: Crit = 0.8
             ConsiderTrials = max(1, iTrial-History):1:iTrial-1;
-            ConsiderTrials = ConsiderTrials(~isnan(TrialData.ChoiceLeft(ConsiderTrials))); % exclude trials did not Choice
+            ConsiderTrials = ConsiderTrials(~isnan(TrialData.GoalChoice(ConsiderTrials))); % exclude trials did not Choice
             NotSkippedFeedbackRate = sum(~TrialData.SkippedFeedback(ConsiderTrials))/length(ConsiderTrials);
             
             if NotSkippedFeedbackRate > Crit
@@ -149,8 +148,8 @@ TrialData.TITrial(iTrial) = NaN; % True if it is included in TimeInvestment
 TrialData.RewardProb(:, iTrial) = [NaN, NaN]';
 TrialData.BlockNumber(iTrial) = NaN; % only adjust if RiskType is Block
 TrialData.BlockTrialNumber(iTrial) = NaN; % only adjust if RiskType is Block
-TrialData.RewardCueLeft(:, iTrial) = [NaN, NaN]'; % only adjust if RiskType is Cued
-TrialData.RewardCueRight(:, iTrial) = [NaN, NaN]'; % only adjust if RiskType is Cued
+TrialData.AuditoryCue(:, iTrial) = [NaN NaN]'; % only adjust if RiskType is Cued
+TrialData.CorrectLocation(iTrial) = NaN; % only adjust if RiskType is Cued
 
 switch TaskParameters.GUIMeta.RiskType.String{TaskParameters.GUI.RiskType}
     case 'Fix'
@@ -246,11 +245,11 @@ switch TaskParameters.GUIMeta.RiskType.String{TaskParameters.GUI.RiskType}
         
     case 'Cued'
         NoOfValidCue = min([size(TaskParameters.GUI.ToneRiskTable.ToneStartFreq, 1), size(TaskParameters.GUI.ToneRiskTable.ToneEndFreq, 1), size(TaskParameters.GUI.ToneRiskTable.ToneCuedRewardProbability, 1)]);
-        CueLeftIdx = randi(NoOfValidCue);
-        CueRightIdx = randi(NoOfValidCue);
-        TrialData.RewardCueLeft(:,iTrial) = [TaskParameters.GUI.ToneRiskTable.ToneStartFreq(CueLeftIdx), TaskParameters.GUI.ToneRiskTable.ToneEndFreq(CueLeftIdx)]';
-        TrialData.RewardCueRight(:,iTrial) = [TaskParameters.GUI.ToneRiskTable.ToneStartFreq(CueRightIdx), TaskParameters.GUI.ToneRiskTable.ToneEndFreq(CueRightIdx)]';
-        TrialData.RewardProb(:,iTrial) = [TaskParameters.GUI.ToneRiskTable.ToneCuedRewardProbability(CueLeftIdx), TaskParameters.GUI.ToneRiskTable.ToneCuedRewardProbability(CueRightIdx)]';
+        %randomly select cue
+        CueIdx = randi(NoOfValidCue);
+        TrialData.AuditoryCue(:,iTrial) = [TaskParameters.GUI.ToneRiskTable.ToneStartFreq(CueIdx), TaskParameters.GUI.ToneRiskTable.ToneEndFreq(CueIdx)]';
+        TrialData.RewardProb(:,iTrial) = [TaskParameters.GUI.ToneRiskTable.ToneCuedRewardProbability(CueIdx), TaskParameters.GUI.ToneRiskTable.ToneCuedRewardProbability(CueIdx)]';
+        TrialData.CorrectLocation(iTrial) = [TaskParameters.GUI.ToneRiskTable.ToneCuedRewardLocation(CueIdx)];
         
     %{
     based on BlockFixHolding with Risk and Cues based on the GUI.ToneRiskTable,
@@ -410,45 +409,45 @@ TaskParameters.GUI.RewardProbActualRight = TrialData.RewardProb(2,iTrial);
 % end}
 
 TrialData.Baited(:, iTrial) = rand(2, 1) < TrialData.RewardProb(:, iTrial); % only logicals 
-switch TaskParameters.GUIMeta.RiskType.String{TaskParameters.GUI.RiskType}
-    case 'BlockRandHolding'
-        if TrialData.BlockTrialNumber(iTrial) ~= 1
-            if isnan(TrialData.ChoiceLeft(iTrial-1))
-                TrialData.Baited(:, iTrial) = TrialData.AvailableReward(:, iTrial-1);
-            else
-                TrialData.Baited(:, iTrial) = TrialData.Baited(:, iTrial) | TrialData.AvailableReward(:, iTrial-1);
-            end
-        end
-    
-    case 'BlockFixHolding'
-        if TrialData.BlockTrialNumber(iTrial) ~= 1
-            if isnan(TrialData.ChoiceLeft(iTrial-1))
-                TrialData.Baited(:, iTrial) = TrialData.AvailableReward(:, iTrial-1);
-            else
-                TrialData.Baited(:, iTrial) = TrialData.Baited(:, iTrial) | TrialData.AvailableReward(:, iTrial-1);
-            end
-        end
-        
-    case 'BlockCued' % for 2-arm version, it can has Holding as a guide for matching (not used at the moment)
-        if ~TaskParameters.GUI.SingleSidePoke && TrialData.BlockTrialNumber(iTrial) ~= 1
-            if isnan(TrialData.ChoiceLeft(iTrial-1))
-                TrialData.Baited(:, iTrial) = TrialData.AvailableReward(:, iTrial-1);
-            else
-                TrialData.Baited(:, iTrial) = TrialData.Baited(:, iTrial) | TrialData.AvailableReward(:, iTrial-1);
-            end
-        end
-    
-end
+% switch TaskParameters.GUIMeta.RiskType.String{TaskParameters.GUI.RiskType}
+%     case 'BlockRandHolding'
+%         if TrialData.BlockTrialNumber(iTrial) ~= 1
+%             if isnan(TrialData.GoalChoice(iTrial-1))
+%                 TrialData.Baited(:, iTrial) = TrialData.AvailableReward(:, iTrial-1);
+%             else
+%                 TrialData.Baited(:, iTrial) = TrialData.Baited(:, iTrial) | TrialData.AvailableReward(:, iTrial-1);
+%             end
+%         end
+%     
+%     case 'BlockFixHolding'
+%         if TrialData.BlockTrialNumber(iTrial) ~= 1
+%             if isnan(TrialData.GoalChoice(iTrial-1))
+%                 TrialData.Baited(:, iTrial) = TrialData.AvailableReward(:, iTrial-1);
+%             else
+%                 TrialData.Baited(:, iTrial) = TrialData.Baited(:, iTrial) | TrialData.AvailableReward(:, iTrial-1);
+%             end
+%         end
+%         
+%     case 'BlockCued' % for 2-arm version, it can has Holding as a guide for matching (not used at the moment)
+%         if ~TaskParameters.GUI.SingleSidePoke && TrialData.BlockTrialNumber(iTrial) ~= 1
+%             if isnan(TrialData.GoalChoice(iTrial-1))
+%                 TrialData.Baited(:, iTrial) = TrialData.AvailableReward(:, iTrial-1);
+%             else
+%                 TrialData.Baited(:, iTrial) = TrialData.Baited(:, iTrial) | TrialData.AvailableReward(:, iTrial-1);
+%             end
+%         end
+%     
+% end
 
 if TaskParameters.GUI.ExpressedAsExpectedValue
     TrialData.Baited(:, iTrial) = true(2, 1);
 end
 
-if TrialData.LightLeft(iTrial) == 1 % i.e. SingleSidePoke is true; holding will be overwritten
-    TrialData.Baited(2, iTrial) = false; % Non light-guided one being irrelevant
-elseif TrialData.LightLeft(iTrial) == 0
-    TrialData.Baited(1, iTrial) = false;
-end
+% if TrialData.LightLeft(iTrial) == 1 % i.e. SingleSidePoke is true; holding will be overwritten
+%     TrialData.Baited(2, iTrial) = false; % Non light-guided one being irrelevant
+% elseif TrialData.LightLeft(iTrial) == 0
+%     TrialData.Baited(1, iTrial) = false;
+% end
 
 TrialData.AvailableReward(:, iTrial) = TrialData.Baited(:,iTrial); % Before trial, the two variables is the same. Only changed after the trial
 

@@ -1,12 +1,13 @@
 function SaveCustomDataAndParamsCSV()
 %{
-Function to write trial custom data from TwoArmBanditVariant
+Function to write trial custom data from AuditorySpatialSchema
 into a comma separated value file (.csv)
 Can not be renamed to protocol-specific scheme, as it's triggered at bpod
 level
 
 Author: Antonio Lee
 Date: 2023-01-23
+TO May 2025
 %}
 
 global BpodSystem
@@ -46,8 +47,8 @@ try
     DataTable.StartNewTrial = TrialData.StartNewTrial(1:nTrials).';
     DataTable.StartNewTrialSuccessful = TrialData.StartNewTrialSuccessful(1:nTrials).';
 
-    DataTable.ChoiceLeft = TrialData.ChoiceLeft(1:nTrials).';
-    DataTable.IncorrectChoice = TrialData.IncorrectChoice(1:nTrials).';
+    DataTable.GoalChoice = TrialData.GoalChoice(1:nTrials).';
+    DataTable.CorrectChoice = TrialData.CorrectChoice(1:nTrials).';
 %     DataTable.FeedbackDelay = TrialData.FeedbackDelay(1:nTrials).';
     DataTable.FeedbackGrace = TrialData.FeedbackGrace(1, 1:nTrials).'; % only first row is exported
     DataTable.FeedbackWaitingTime = TrialData.FeedbackWaitingTime(1:nTrials).';
@@ -109,5 +110,5 @@ catch
     warning('Error: writetable malfunction. No .csv file is saved.')
     return
 end
-disp('trial_custom_data_and_params.csv for TwoArmBanditVariant is successfully saved')
+disp('trial_custom_data_and_params.csv for AuditorySpatialSchema is successfully saved')
 end  % save_custom_data_and_params_tsv()

@@ -1,4 +1,4 @@
-function AnalysisFigure = TwoArmBanditVariant_Cued(DataFile)
+function AnalysisFigure = AuditorySpatialSchema_Cued(DataFile)
 % Cued Analysis Function
 % Developed by Antonio Lee @ BCCN Berlin
 % Version 2.0 ~ April 2024

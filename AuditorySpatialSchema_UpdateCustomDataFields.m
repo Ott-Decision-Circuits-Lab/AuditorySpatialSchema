@@ -1,5 +1,10 @@
-function TwoArmBanditVariant_UpdateCustomDataFields(iTrial)
-
+function AuditorySpatialSchema_UpdateCustomDataFields(iTrial)
+%conventions for auditory spatial shema
+%GoalChoice Trial event field (replaces LeftChoice)
+%encode choices 1-5 (1=left, 5=right, only these are implement as of may
+%16th 2025. future is 3-center, and later maybe 2/4, too)
+%defition of correct/incorrect substantially changed
+ 
 global BpodSystem
 global TaskParameters
 
@@ -22,8 +27,8 @@ if ~any(strcmp('NoTrialStart', StatesThisTrial)) % for RestartInvalidTrial, one 
     TrialData.NoTrialStart(iTrial) = false;
 end
 
-if any(strcmp('StartCIn', StatesThisTrial)) % for RestartInvalidTrial, one may start CIn, looped back with BF/EW, then NoTrialStart
-    TrialData.TimeCenterPoke(iTrial) = TrialStates.StartCIn(end, 1); % last one should be the actual one for the trial
+if any(strcmp('StartHIn', StatesThisTrial)) % for RestartInvalidTrial, one may start CIn, looped back with BF/EW, then NoTrialStart
+    TrialData.TimeCenterPoke(iTrial) = TrialStates.StartHIn(end, 1); % last one should be the actual one for the trial
 end
 
 if any(strcmp('BrokeFixation', StatesThisTrial))
@@ -95,16 +100,27 @@ end
 
 if any(strcmp('StartLIn', StatesThisTrial))
     TrialData.TimeChoice(iTrial) = TrialStates.StartLIn(1,1);
-    TrialData.ChoiceLeft(iTrial) = true; % True if a choice is made to the left poke (also include incorrect choice)
+    TrialData.GoalChoice(iTrial) = 1; % 1 if a choice is made to the left poke (also include incorrect choice)
+elseif any(strcmp('StartCIn', StatesThisTrial))
+    TrialData.TimeChoice(iTrial) = TrialStates.StartCIn(1,1);
+    TrialData.GoalChoice(iTrial) = 3; % 3 if a choice is made to the center poke (also include incorrect choice)
 elseif any(strcmp('StartRIn', StatesThisTrial))
     TrialData.TimeChoice(iTrial) = TrialStates.StartRIn(1,1);
-    TrialData.ChoiceLeft(iTrial) = false; % True if a choice is made to the left poke (also include incorrect choice)
+    TrialData.GoalChoice(iTrial) = 5; % 5 if a choice is made to the left poke (also include incorrect choice)
 end
 
-if ~isnan(TrialData.LightLeft(iTrial))
-    if any(strcmp('StartLIn', StatesThisTrial)) || any(strcmp('StartRIn', StatesThisTrial))
-        TrialData.IncorrectChoice(iTrial) = TrialData.ChoiceLeft(iTrial)~=TrialData.LightLeft(iTrial); % True if the choice is incorrect (only for 1-arm bandit/GUI.SingleSidePoke); basically = LigthLeft & ChoiceLeft
+%ccorect/incorrect choice (for now map1/5 to L/R by hand)
+%temp soluition TO May 16th 2025
+if ~isnan(TrialData.GoalChoice(iTrial))
+    if TrialData.CorrectLocation(iTrial) == 1 && any(strcmp('StartLIn', StatesThisTrial))
+        TrialData.CorrectChoice(iTrial) = true;
+    elseif TrialData.CorrectLocation(iTrial) == 5 && any(strcmp('StartRIn', StatesThisTrial))
+        TrialData.CorrectChoice(iTrial) = true;
+    else
+        TrialData.CorrectChoice(iTrial) = false;
     end
+else
+    TrialData.CorrectChoice(iTrial)=NaN;
 end
 
 RegisteredWithdrawals = [];
@@ -138,28 +154,21 @@ elseif any(strcmp('WaterL',StatesThisTrial)) || any(strcmp('WaterR',StatesThisTr
    TrialData.SkippedFeedback(iTrial) = false;
 end
 
-if TaskParameters.GUI.CatchTrial && ~isnan(TrialData.ChoiceLeft(iTrial)) % if a choice is made (no matter SingleSidePoke) 
-    TrialData.TITrial(iTrial) = false; % True if it is included in TimeInvestment
-    if TrialData.IncorrectChoice(iTrial) == 1 % Catch 1: incorrect choice
-        TrialData.TITrial(iTrial) = true;
-    elseif TrialData.Baited(2-TrialData.ChoiceLeft(iTrial), iTrial) == 0 % Catch 2: choice made is not baited
-        TrialData.TITrial(iTrial) = true;
-    elseif TrialData.SkippedFeedback(iTrial) && TrialData.Baited(2-TrialData.ChoiceLeft(iTrial), iTrial) == 1 % Catch 3: Choice made is baited, but Skipped Feedback
-        TrialData.TITrial(iTrial) = true;
-    end
-end
+%TO: removed meaning of this for now 
+TrialData.TITrial(iTrial) = false; % True if it is included in TimeInvestment
+
 
 %% Peri-outcome
 if any(strcmp('WaterL', StatesThisTrial)) || any(strcmp('WaterR', StatesThisTrial)) % if a choice is made (no matter SingleSidePoke) 
     TrialData.Rewarded(iTrial) = true;
-elseif ~isnan(TrialData.ChoiceLeft(iTrial)) % either incorrect, not baited, or skipped
+elseif ~isnan(TrialData.GoalChoice(iTrial)) % either incorrect, not baited, or skipped
     TrialData.Rewarded(iTrial) = false;
 end    
     
 if TrialData.Rewarded(iTrial) == true % No change if Skipped Feedback
-    if TrialData.ChoiceLeft(iTrial) == 1
+    if TrialData.GoalChoice(iTrial) == 1
         TrialData.AvailableReward(1, iTrial) = false;
-    elseif TrialData.ChoiceLeft(iTrial) == 0
+    elseif TrialData.GoalChoice(iTrial) == 5
         TrialData.AvailableReward(2, iTrial) = false;
     end
 end

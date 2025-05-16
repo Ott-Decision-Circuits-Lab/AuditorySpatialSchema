@@ -1,4 +1,4 @@
-function TwoArmBanditVariant_InsertSessionDescription(iTrial)
+function AuditorySpatialSchema_InsertSessionDescription(iTrial)
 global BpodSystem
 global TaskParameters
 

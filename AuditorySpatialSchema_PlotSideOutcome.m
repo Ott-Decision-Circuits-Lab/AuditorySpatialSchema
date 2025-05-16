@@ -1,4 +1,4 @@
-function TwoArmBanditVariant_PlotSideOutcome(AxesHandles, Action, varargin)
+function AuditorySpatialSchema_PlotSideOutcome(AxesHandles, Action, varargin)
 global BpodSystem
 global TaskParameters
 global nTrialsToShow
@@ -200,8 +200,8 @@ switch Action
         EarlyWithdrawal = TrialData.EarlyWithdrawal;
         NoDecision = TrialData.NoDecision;
         StartNewTrial = TrialData.StartNewTrial;
-        ChoiceLeft = TrialData.ChoiceLeft;
-        IncorrectChoice = TrialData.IncorrectChoice;
+        GoalChoice = TrialData.GoalChoice;
+        IncorrectChoice = TrialData.CorrectChoice==0;%careful, true also contains non-choice trials
         SkippedFeedback = TrialData.SkippedFeedback;
         RewardProb = TrialData.RewardProb;
         
@@ -268,9 +268,9 @@ switch Action
                 'ydata', YData);
         end
         
-        if ~isnan(ChoiceLeft(iTrial))
+        if ~isnan(GoalChoice(iTrial))
             % ChoiceLeft
-            ndxChoiceLeft = ChoiceLeft(indxToPlot) == 1;
+            ndxChoiceLeft = GoalChoice(indxToPlot) == 1;
             XData = indxToPlot(ndxChoiceLeft);
             YData = RewardProb(1, indxToPlot(ndxChoiceLeft));
             set(BpodSystem.GUIHandles.OutcomePlot.ChoiceLeft,...
@@ -278,7 +278,7 @@ switch Action
                 'ydata', YData);
             
             % ChoiceRight
-            ndxChoiceRight = ChoiceLeft(indxToPlot) == 0;
+            ndxChoiceRight = GoalChoice(indxToPlot) == 5;
             XData = indxToPlot(ndxChoiceRight);
             YData = RewardProb(2, indxToPlot(ndxChoiceRight));
             set(BpodSystem.GUIHandles.OutcomePlot.ChoiceRight,...
@@ -288,8 +288,8 @@ switch Action
         
         if SkippedFeedback(iTrial) == 1
             % SkippedFeedbackLeft
-            ndxSkippedFeedbackLeft = SkippedFeedback(indxToPlot) == 1 & ChoiceLeft(indxToPlot) == 1;
-            ndxSkippedFeedbackRight = SkippedFeedback(indxToPlot) == 1 & ChoiceLeft(indxToPlot) == 0;
+            ndxSkippedFeedbackLeft = SkippedFeedback(indxToPlot) == 1 & GoalChoice(indxToPlot) == 1;
+            ndxSkippedFeedbackRight = SkippedFeedback(indxToPlot) == 1 & GoalChoice(indxToPlot) == 5;
             XData = [indxToPlot(ndxSkippedFeedbackLeft), indxToPlot(ndxSkippedFeedbackRight)];
             YData = [RewardProb(1, indxToPlot(ndxSkippedFeedbackLeft)), RewardProb(2, indxToPlot(ndxSkippedFeedbackRight))];
             set(BpodSystem.GUIHandles.OutcomePlot.SkippedFeedback,...
@@ -298,7 +298,7 @@ switch Action
         end
         
         % CumRwd
-        RewardTotal = CalculateCumulativeReward(); % custom function under Bpod_Gen2/Custom
+        RewardTotal = CalculateCumulativeRewardAuditorySpatialSchema(); % custom function under Bpod_Gen2/Custom
         set(BpodSystem.GUIHandles.OutcomePlot.CumRwd, ...
             'position', [iTrial+1, 1], ...
             'string', [num2str(RewardTotal) ' microL']);
@@ -355,12 +355,12 @@ switch Action
             BpodSystem.GUIHandles.OutcomePlot.HandleMoveTime.Visible = 'on';
             set(get(BpodSystem.GUIHandles.OutcomePlot.HandleMoveTime,'Children'),'Visible','on');
             cla(AxesHandles.HandleMoveTime)
-            BpodSystem.GUIHandles.OutcomePlot.HistMTLeft = histogram(AxesHandles.HandleMoveTime,MoveTime(ChoiceLeft==1)*1000);
+            BpodSystem.GUIHandles.OutcomePlot.HistMTLeft = histogram(AxesHandles.HandleMoveTime,MoveTime(GoalChoice==1)*1000);
             BpodSystem.GUIHandles.OutcomePlot.HistMTLeft.BinWidth = 50;
             BpodSystem.GUIHandles.OutcomePlot.HistMTLeft.FaceColor = sand;
             BpodSystem.GUIHandles.OutcomePlot.HistMTLeft.EdgeColor = 'none';
 
-            BpodSystem.GUIHandles.OutcomePlot.HistMTRight = histogram(AxesHandles.HandleMoveTime,MoveTime(ChoiceLeft==0)*1000);
+            BpodSystem.GUIHandles.OutcomePlot.HistMTRight = histogram(AxesHandles.HandleMoveTime,MoveTime(GoalChoice==5)*1000);
             BpodSystem.GUIHandles.OutcomePlot.HistMTRight.BinWidth = 50;
             BpodSystem.GUIHandles.OutcomePlot.HistMTRight.FaceColor = turquoise;
             BpodSystem.GUIHandles.OutcomePlot.HistMTRight.EdgeColor = 'none';
@@ -370,11 +370,11 @@ switch Action
             BpodSystem.GUIHandles.OutcomePlot.HistMTStartNew.FaceColor = 'none';
             BpodSystem.GUIHandles.OutcomePlot.HistMTStartNew.EdgeColor = denim;
 
-            LeftP = 100*sum(ChoiceLeft==1)/sum(EarlyWithdrawal==0);
-            RightP = 100*sum(ChoiceLeft==0)/sum(EarlyWithdrawal==0);
+            LeftP = 100*sum(GoalChoice==1)/sum(EarlyWithdrawal==0);
+            RightP = 100*sum(GoalChoice==0)/sum(EarlyWithdrawal==0);
             StartNewP = 100*sum(StartNewTrialSuccessful==1)/sum(EarlyWithdrawal==0);
             NoDeciP = 100*sum(NoDecision==1)/sum(EarlyWithdrawal==0);
-            IncorrectP = 100*sum(IncorrectChoice==1)/sum(~isnan(ChoiceLeft));
+            IncorrectP = 100*sum(IncorrectChoice==1)/sum(~isnan(GoalChoice));
 
             BpodSystem.GUIHandles.OutcomePlot.LeftP = text(AxesHandles.HandleMoveTime,0,1.00,['LeftP = ' sprintf('%1.1f',LeftP) '%'],...
                 'Color',sand,'FontSize',8,'Units','normalized');
@@ -397,30 +397,30 @@ switch Action
             set(get(BpodSystem.GUIHandles.OutcomePlot.HandleFeedback,'Children'),'Visible','on');
             cla(AxesHandles.HandleFeedback)
 
-            BpodSystem.GUIHandles.OutcomePlot.HistRFLeft = histogram(AxesHandles.HandleFeedback,FeedbackWaitingTime(SkippedFeedback==0 & ChoiceLeft==1));
+            BpodSystem.GUIHandles.OutcomePlot.HistRFLeft = histogram(AxesHandles.HandleFeedback,FeedbackWaitingTime(SkippedFeedback==0 & GoalChoice==1));
             BpodSystem.GUIHandles.OutcomePlot.HistRFLeft.BinWidth = 1;
             BpodSystem.GUIHandles.OutcomePlot.HistRFLeft.FaceColor = 'none';
             BpodSystem.GUIHandles.OutcomePlot.HistRFLeft.EdgeColor = sand;
 
-            BpodSystem.GUIHandles.OutcomePlot.HistRFRight = histogram(AxesHandles.HandleFeedback,FeedbackWaitingTime(SkippedFeedback==0 & ChoiceLeft==0));
+            BpodSystem.GUIHandles.OutcomePlot.HistRFRight = histogram(AxesHandles.HandleFeedback,FeedbackWaitingTime(SkippedFeedback==0 & GoalChoice==5));
             BpodSystem.GUIHandles.OutcomePlot.HistRFRight.BinWidth = 1;
             BpodSystem.GUIHandles.OutcomePlot.HistRFRight.FaceColor = 'none';
             BpodSystem.GUIHandles.OutcomePlot.HistRFRight.EdgeColor = turquoise;
 
-            BpodSystem.GUIHandles.OutcomePlot.HistSFLeft = histogram(AxesHandles.HandleFeedback,FeedbackWaitingTime(SkippedFeedback==1 & ChoiceLeft==1));
+            BpodSystem.GUIHandles.OutcomePlot.HistSFLeft = histogram(AxesHandles.HandleFeedback,FeedbackWaitingTime(SkippedFeedback==1 & GoalChoice==1));
             BpodSystem.GUIHandles.OutcomePlot.HistSFLeft.BinWidth = 1;
             BpodSystem.GUIHandles.OutcomePlot.HistSFLeft.FaceColor = sand;
             BpodSystem.GUIHandles.OutcomePlot.HistSFLeft.EdgeColor = 'none';
 
-            BpodSystem.GUIHandles.OutcomePlot.HistSFRight = histogram(AxesHandles.HandleFeedback,FeedbackWaitingTime(SkippedFeedback==1 & ChoiceLeft==0));
+            BpodSystem.GUIHandles.OutcomePlot.HistSFRight = histogram(AxesHandles.HandleFeedback,FeedbackWaitingTime(SkippedFeedback==1 & GoalChoice==5));
             BpodSystem.GUIHandles.OutcomePlot.HistSFRight.BinWidth = 1;
             BpodSystem.GUIHandles.OutcomePlot.HistSFRight.FaceColor = turquoise;
             BpodSystem.GUIHandles.OutcomePlot.HistSFRight.EdgeColor = 'none';
 
-            SFLeftP = 100*sum(SkippedFeedback==1 & ChoiceLeft==1)/sum(~isnan(ChoiceLeft)); % skipped feedback left
-            SFRightP = 100*sum(SkippedFeedback==1 & ChoiceLeft==0)/sum(~isnan(ChoiceLeft));
-            RFLeftP = 100*sum(SkippedFeedback==0 & ChoiceLeft==1)/sum(~isnan(ChoiceLeft)); % received feedback left (incl. IncorrectChoice)
-            RFRightP = 100*sum(SkippedFeedback==0 & ChoiceLeft==0)/sum(~isnan(ChoiceLeft));
+            SFLeftP = 100*sum(SkippedFeedback==1 & GoalChoice==1)/sum(~isnan(GoalChoice)); % skipped feedback left
+            SFRightP = 100*sum(SkippedFeedback==1 & GoalChoice==5)/sum(~isnan(GoalChoice));
+            RFLeftP = 100*sum(SkippedFeedback==0 & GoalChoice==1)/sum(~isnan(GoalChoice)); % received feedback left (incl. IncorrectChoice)
+            RFRightP = 100*sum(SkippedFeedback==0 & GoalChoice==5)/sum(~isnan(GoalChoice));
 
             BpodSystem.GUIHandles.OutcomePlot.SFLeftP = text(AxesHandles.HandleFeedback,0,1.00,['SkippedLeftP = ' sprintf('%1.1f',SFLeftP) '%'],...
                 'FontSize',8,'Units','normalized');
@@ -440,7 +440,7 @@ switch Action
             set(get(BpodSystem.GUIHandles.OutcomePlot.HandleTimeInvestment,'Children'),'Visible','on');
             % cla(AxesHandles.HandleTimeInvestment)
             
-            ChoiceLeftRight = [ChoiceLeft; 1-ChoiceLeft];
+            ChoiceLeftRight = [double(GoalChoice==1); double(GoalChoice==5)];
             ndxIncorrect = IncorrectChoice == 1; %all (completed) error trials (including catch errors)
             ndxNotBaited = (IncorrectChoice ~= 1) & any((Baited == 0) .* ChoiceLeftRight, 1); % Choice is non-baited
             ndxSkippedBaited = (IncorrectChoice ~= 1) & any((Baited == 1) .* ChoiceLeftRight .* [SkippedFeedback; SkippedFeedback], 1); % Choice made is Baited but Skipped

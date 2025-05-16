@@ -1,15 +1,13 @@
-function TwoArmBanditVariant()
-% Protocol focusing on reward probability, either block-style or
-% cued-style, of either 1-arm or 2-arm bandit setting.
-% Developed by Antonio Lee @ BCCN Humboldt-Universität zu Berlin
-% V1.0 release in Jan 2023
+function AuditorySpatialSchema()
+% Behavior protocol for auditory-spatial schema learning
+% Torben Ott, BCCN Berlin, May 2025
 
 global BpodSystem
 global TaskParameters
 
 %% initialize GUI and plot
-TaskParameters = TwoArmBanditVariant_SetupGUI();  % Set experiment parameters in GUISetup.m
-TwoArmBanditVariant_PlotSideOutcome(BpodSystem.GUIHandles, 'init');
+TaskParameters = AuditorySpatialSchema_SetupGUI();  % Set experiment parameters in GUISetup.m
+AuditorySpatialSchema_PlotSideOutcome(BpodSystem.GUIHandles, 'init');
 
 %% set up additional bpod module(s) and load waveform
 if ~BpodSystem.EmulatorMode % Sound/laser waveform generation is not compulsory in this protocol
@@ -31,7 +29,7 @@ if ~BpodSystem.EmulatorMode % Sound/laser waveform generation is not compulsory 
             end
         end
 
-        TwoArmBanditVariant_LoadWaveform(Player, 'TrialIndependent'); %Taking the last Player for now as the WaveformPlayer
+        AuditorySpatialSchema_LoadWaveform(Player, 'TrialIndependent'); %Taking the last Player for now as the WaveformPlayer
     end
 else
     disp('Warning: Sound or laser will not be played in emulator mode.')
@@ -48,17 +46,17 @@ iTrial = 1;
 
 while RunSession
     %% initialize trial settings and plot
-    TwoArmBanditVariant_InitializeCustomDataFields(iTrial); % Initialize data (trial type) vectors and first values, potentially updated TaskParameters
+    AuditorySpatialSchema_InitializeCustomDataFields(iTrial); % Initialize data (trial type) vectors and first values, potentially updated TaskParameters
     TaskParameters = BpodParameterGUI('sync', TaskParameters);
-    TwoArmBanditVariant_PlotSideOutcome(BpodSystem.GUIHandles.OutcomePlot, 'UpdateTrial', iTrial);
+    AuditorySpatialSchema_PlotSideOutcome(BpodSystem.GUIHandles.OutcomePlot, 'UpdateTrial', iTrial);
     
     %% load waveform to auxillary bpod modules
     if ~BpodSystem.EmulatorMode
-        TwoArmBanditVariant_LoadWaveform(Player, 'TrialDependent', iTrial); % Load stimuli trains to wave player if not EmulatorMode
+        AuditorySpatialSchema_LoadWaveform(Player, 'TrialDependent', iTrial); % Load stimuli trains to wave player if not EmulatorMode
     end
     
     %% set up state matrix and send to bpod
-    sma = TwoArmBanditVariant_StateMatrix(iTrial);
+    sma = AuditorySpatialSchema_StateMatrix(iTrial);
     SendStateMatrix(sma);
     
     %% NIDAQ get nidaq ready to start
@@ -94,8 +92,8 @@ while RunSession
     %% bpod save & update fields
     if ~isempty(fieldnames(RawEvents))
         BpodSystem.Data = AddTrialEvents(BpodSystem.Data, RawEvents);
-        TwoArmBanditVariant_InsertSessionDescription(iTrial);
-        TwoArmBanditVariant_UpdateCustomDataFields(iTrial);
+        AuditorySpatialSchema_InsertSessionDescription(iTrial);
+        AuditorySpatialSchema_UpdateCustomDataFields(iTrial);
         SaveBpodSessionData();
     end
     
@@ -107,11 +105,11 @@ while RunSession
     end
 
     %% update figures
-    TwoArmBanditVariant_PlotSideOutcome(BpodSystem.GUIHandles.OutcomePlot, 'UpdateResult', iTrial);
+    AuditorySpatialSchema_PlotSideOutcome(BpodSystem.GUIHandles.OutcomePlot, 'UpdateResult', iTrial);
     
     %% update photometry plots
     if TaskParameters.GUI.Photometry
-        TwoArmBanditVariant_PlotPhotometryData(iTrial, FigNidaq1, FigNidaq2, PhotoData, Photo2Data);
+        AuditorySpatialSchema_PlotPhotometryData(iTrial, FigNidaq1, FigNidaq2, PhotoData, Photo2Data);
     end
     
     iTrial = iTrial + 1;
@@ -121,8 +119,8 @@ end % Main loop
 %% release resources and checking
 clear Player % release the serial port (done automatically when function returns)
 
-if TaskParameters.GUI.Photometry
-    CheckPhotometry(PhotoData, Photo2Data);
-end
+% if TaskParameters.GUI.Photometry
+%     CheckPhotometry(PhotoData, Photo2Data);
+% end
 
 end % Protocol
