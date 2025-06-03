@@ -416,7 +416,7 @@ switch TaskParameters.GUIMeta.RiskType.String{TaskParameters.GUI.RiskType}
 end
 
 TaskParameters.GUI.RewardProbActualLeft = TrialData.RewardProb(1,iTrial);
-TaskParameters.GUI.RewardProbActualCenter = TrialData.RewardProb(2,iTrial);
+% TaskParameters.GUI.RewardProbActualCenter = TrialData.RewardProb(2,iTrial);
 TaskParameters.GUI.RewardProbActualRight = TrialData.RewardProb(3,iTrial);
 
 %{ Should not adjust RewardProb in 1-arm task as some codes use (i-1)th values

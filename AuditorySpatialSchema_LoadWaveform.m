@@ -180,7 +180,7 @@ switch Mode
 
     case 'TrialDependent'
         switch TaskParameters.GUIMeta.RiskType.String{TaskParameters.GUI.RiskType}
-            case "Cued"
+            case {"Cued","CuedNewInformation"}
                 TrialData = BpodSystem.Data.Custom.TrialData;
                 StimulusTime = TaskParameters.GUI.StimulusTime;
                                 
@@ -189,7 +189,7 @@ switch Mode
                 RightSound = [];
                 if StimulusTime > 0
                     LeftSound = GenerateRiskCue(fs, StimulusTime, 'Freq', TrialData.AuditoryCue(1,iTrial), TrialData.AuditoryCue(2,iTrial));
-                    if TrialData.AuditoryCue(1,iTrial)<5
+                    if TrialData.AuditoryCue(1,iTrial)<6
                         LeftSound = LeftSound*0.25;
                     end
                     RightSound = LeftSound; %always stero when two speaker system

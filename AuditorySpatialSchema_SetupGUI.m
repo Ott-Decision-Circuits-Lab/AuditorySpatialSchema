@@ -10,8 +10,8 @@ if isempty(fieldnames(TaskParameters))
     TaskParameters.GUI.SessionDescription = 'First spatial task'; % free space to document setting purposes
     TaskParameters.GUIMeta.SessionDescription.Style = 'edittext';
     
-    TaskParameters.GUI.Ports_LMR = '234'; % bpod port number for goal pokes. for now LMR = left-most, middle, right-most
-    TaskParameters.GUI.Ports_Home  = '1'; % bpod port  number for home poke
+    TaskParameters.GUI.Ports_LMR = '143'; % bpod port number for goal pokes. for now LMR = left-most, middle, right-most
+    TaskParameters.GUI.Ports_Home  = '2'; % bpod port  number for home poke
     TaskParameters.GUI.EphysSession = false;
     TaskParameters.GUIMeta.EphysSession.Style = 'checkbox';
     TaskParameters.GUI.Wire1VideoTrigger = 1;
@@ -151,7 +151,7 @@ if isempty(fieldnames(TaskParameters))
     
     TaskParameters.GUI.RiskType = 5;
     TaskParameters.GUIMeta.RiskType.Style = 'popupmenu';
-    TaskParameters.GUIMeta.RiskType.String = {'Fix', 'BlockRand', 'BlockFix', 'BlockFixHolding', 'Cued', 'CuedNewInformation', 'BlockCued', 'CuedBlockRatio', 'CuedBlockITI', 'CuedBlockTau', 'BlockRandHolding'}; % decide how reward probability is expressed: Fix, based on RewardProbLeft value to express fix RewardProb; BlockRand, randomly draw a value between Min and Max and assign; BlockFix, based on Max and Min and reverse L-R value; Cue, cued by Tone
+    TaskParameters.GUIMeta.RiskType.String = {'Fix', 'BlockRand', 'BlockFix', 'BlockFixHolding', 'Cued', 'CuedNewInformation','BlockCued', 'CuedBlockRatio', 'CuedBlockITI', 'CuedBlockTau', 'BlockRandHolding'}; % decide how reward probability is expressed: Fix, based on RewardProbLeft value to express fix RewardProb; BlockRand, randomly draw a value between Min and Max and assign; BlockFix, based on Max and Min and reverse L-R value; Cue, cued by Tone
     
     TaskParameters.GUI.RewardProbLeft = 1; % Reward Probability of Left Poke, only for Fix in RiskType
     TaskParameters.GUI.RewardProbRight = 1; % Reward Probability of Left Poke, only for Fix in RiskType
@@ -166,7 +166,7 @@ if isempty(fieldnames(TaskParameters))
     TaskParameters.GUI.RewardProbMax = 1; % upper boundary of reward probability, only for Block in RiskType
     TaskParameters.GUI.RewardProbMin = 0.4; % lower boundary of reward probability, only for Block in RiskType
 
-    TaskParameters.GUI.ToneDigitalAtt = -30; % lower boundary of reward probability, only for Block in RiskType
+    TaskParameters.GUI.ToneDigitalAtt = -40; % lower boundary of reward probability, only for Block in RiskType
       
     TaskParameters.GUI.ToneRiskTable.ToneStartFreq = [2 10 5 15]'; % (kHz), only for Cue in RiskType
     TaskParameters.GUI.ToneRiskTable.ToneEndFreq = [2 10 5 15]'; % (kHz), features for sweep, only for Cue in RiskType
@@ -181,12 +181,12 @@ if isempty(fieldnames(TaskParameters))
     TaskParameters.GUI.RewardProbActualRight = TaskParameters.GUI.RewardProbRight; % Reward Probability of Right Poke, for all RiskType
     TaskParameters.GUIMeta.RewardProbActualRight.Style = 'text';
   
-    TaskParameters.GUIPanels.Reward = {'ToneDigitalAtt','RewardAmount','ExpressedAsExpectedValue',...
+    TaskParameters.GUIPanels.Reward = {'ToneRiskTable','ToneDigitalAtt','RewardAmount','ExpressedAsExpectedValue','RiskType',...
                                        'RewardProbLeft','RewardProbRight','BlockLenMin',...
                                        'BlockLenMax','BlockLen','NextBlockTrialNumber',...
                                        'RewardProbMax','RewardProbMin',...
                                        'RewardProbActualLeft','RewardProbActualRight',};
-    TaskParameters.GUIPanels.ToneRisk = {'ToneRiskTable','RiskType'};
+    
     %% Photometry
     %photometry general
     TaskParameters.GUI.Photometry = 0;
@@ -264,7 +264,6 @@ if isempty(fieldnames(TaskParameters))
     TaskParameters.GUIPanels.PhotometryRig = {'nidaqDev'};
     
     TaskParameters.GUITabs.General = {'General', 'Sampling', 'Reward', 'FeedbackDelay'};
-    TaskParameters.GUITabs.ToneRisk = {'ToneRisk'};
     TaskParameters.GUITabs.Photometry = {'PhotometryRecording', 'PhotometryNidaq', 'PhotometryPlot', 'PhotometryRig'};
        
     TaskParameters.GUI = orderfields(TaskParameters.GUI);
