@@ -109,13 +109,15 @@ elseif any(strcmp('StartRIn', StatesThisTrial))
     TrialData.GoalChoice(iTrial) = 5; % 5 if a choice is made to the left poke (also include incorrect choice)
 end
 
-%ccorect/incorrect choice (for now map1/5 to L/R by hand)
+%ccorect/incorrect choice (for now map1/3/5 to L/M/R by hand)
 %temp soluition TO May 16th 2025
 if ~isnan(TrialData.GoalChoice(iTrial))
     if TrialData.CorrectLocation(iTrial) == 1 && any(strcmp('StartLIn', StatesThisTrial))
         TrialData.CorrectChoice(iTrial) = true;
-    elseif TrialData.CorrectLocation(iTrial) == 5 && any(strcmp('StartRIn', StatesThisTrial))
+    elseif TrialData.CorrectLocation(iTrial) == 3 && any(strcmp('StartCIn', StatesThisTrial))
         TrialData.CorrectChoice(iTrial) = true;
+    elseif TrialData.CorrectLocation(iTrial) == 5 && any(strcmp('StartRIn', StatesThisTrial))
+        TrialData.CorrectChoice(iTrial) = true;        
     else
         TrialData.CorrectChoice(iTrial) = false;
     end
@@ -141,16 +143,20 @@ if any(strcmp('StartLIn', StatesThisTrial))
     WaitBegin = TrialStates.StartLIn(1, 1);
     WaitEnd = TrialStates.LIn(end, 2);
     TrialData.FeedbackWaitingTime(iTrial) = WaitEnd - WaitBegin;
+elseif any(strcmp('StartCIn',StatesThisTrial))
+    WaitBegin = TrialStates.StartCIn(1, 1);
+    WaitEnd = TrialStates.CIn(end, 2);
+    TrialData.FeedbackWaitingTime(iTrial) = WaitEnd - WaitBegin;
 elseif any(strcmp('StartRIn',StatesThisTrial))
     WaitBegin = TrialStates.StartRIn(1, 1);
     WaitEnd = TrialStates.RIn(end, 2);
-    TrialData.FeedbackWaitingTime(iTrial) = WaitEnd - WaitBegin;
+    TrialData.FeedbackWaitingTime(iTrial) = WaitEnd - WaitBegin;    
 end
 
 if any(strcmp('SkippedFeedback',StatesThisTrial))
     TrialData.TimeSkippedFeedback(iTrial) = TrialStates.SkippedFeedback(1, 1);
     TrialData.SkippedFeedback(iTrial) = true; % True if SkippedFeedback
-elseif any(strcmp('WaterL',StatesThisTrial)) || any(strcmp('WaterR',StatesThisTrial)) || any(strcmp('IncorrectChoice',StatesThisTrial))
+elseif any(strcmp('WaterL',StatesThisTrial)) || any(strcmp('WaterR',StatesThisTrial)) || any(strcmp('WaterC',StatesThisTrial)) || any(strcmp('IncorrectChoice',StatesThisTrial))
    TrialData.SkippedFeedback(iTrial) = false;
 end
 
@@ -159,7 +165,7 @@ TrialData.TITrial(iTrial) = false; % True if it is included in TimeInvestment
 
 
 %% Peri-outcome
-if any(strcmp('WaterL', StatesThisTrial)) || any(strcmp('WaterR', StatesThisTrial)) % if a choice is made (no matter SingleSidePoke) 
+if any(strcmp('WaterL', StatesThisTrial)) || any(strcmp('WaterC', StatesThisTrial)) || any(strcmp('WaterR', StatesThisTrial)) % if a choice is made (no matter SingleSidePoke) 
     TrialData.Rewarded(iTrial) = true;
 elseif ~isnan(TrialData.GoalChoice(iTrial)) % either incorrect, not baited, or skipped
     TrialData.Rewarded(iTrial) = false;
@@ -168,16 +174,20 @@ end
 if TrialData.Rewarded(iTrial) == true % No change if Skipped Feedback
     if TrialData.GoalChoice(iTrial) == 1
         TrialData.AvailableReward(1, iTrial) = false;
-    elseif TrialData.GoalChoice(iTrial) == 5
+    elseif TrialData.GoalChoice(iTrial) == 3
         TrialData.AvailableReward(2, iTrial) = false;
+    elseif TrialData.GoalChoice(iTrial) == 5
+        TrialData.AvailableReward(3, iTrial) = false;        
     end
 end
 
 if TrialData.Rewarded(iTrial) == true
     if any(strcmp('WaterL', StatesThisTrial))
         TrialData.TimeReward(iTrial) = TrialStates.WaterL(1, 1);
+    elseif any(strcmp('WaterC', StatesThisTrial))
+        TrialData.TimeReward(iTrial) = TrialStates.WaterC(1, 1);
     elseif any(strcmp('WaterR', StatesThisTrial))
-        TrialData.TimeReward(iTrial) = TrialStates.WaterR(1, 1);
+        TrialData.TimeReward(iTrial) = TrialStates.WaterR(1, 1);        
     end
 end
 

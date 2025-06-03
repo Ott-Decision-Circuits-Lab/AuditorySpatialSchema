@@ -145,7 +145,7 @@ TrialData.SkippedFeedback(iTrial) = NaN; % True if SkippedFeedback
 TrialData.TITrial(iTrial) = NaN; % True if it is included in TimeInvestment
 
 %% Peri-outcome
-TrialData.RewardProb(:, iTrial) = [NaN, NaN]';
+TrialData.RewardProb(:, iTrial) = [NaN, NaN, NaN]';
 TrialData.BlockNumber(iTrial) = NaN; % only adjust if RiskType is Block
 TrialData.BlockTrialNumber(iTrial) = NaN; % only adjust if RiskType is Block
 TrialData.AuditoryCue(:, iTrial) = [NaN NaN]'; % only adjust if RiskType is Cued
@@ -244,19 +244,36 @@ switch TaskParameters.GUIMeta.RiskType.String{TaskParameters.GUI.RiskType}
         end
         
     case 'Cued'
-        NoOfValidCue = min([size(TaskParameters.GUI.ToneRiskTable.ToneStartFreq, 1), size(TaskParameters.GUI.ToneRiskTable.ToneEndFreq, 1), size(TaskParameters.GUI.ToneRiskTable.ToneCuedRewardProbability, 1)]);
+        NoOfValidCue = 2; %first two table entries!
         %randomly select cue
         CueIdx = randi(NoOfValidCue);
         TrialData.AuditoryCue(:,iTrial) = [TaskParameters.GUI.ToneRiskTable.ToneStartFreq(CueIdx), TaskParameters.GUI.ToneRiskTable.ToneEndFreq(CueIdx)]';
-        TrialData.RewardProb(:,iTrial) = [TaskParameters.GUI.ToneRiskTable.ToneCuedRewardProbability(CueIdx), TaskParameters.GUI.ToneRiskTable.ToneCuedRewardProbability(CueIdx)]';
+        TrialData.RewardProb(:,iTrial) = [TaskParameters.GUI.ToneRiskTable.ToneCuedRewardProbability(CueIdx), TaskParameters.GUI.ToneRiskTable.ToneCuedRewardProbability(CueIdx), TaskParameters.GUI.ToneRiskTable.ToneCuedRewardProbability(CueIdx)]';
         TrialData.CorrectLocation(iTrial) = [TaskParameters.GUI.ToneRiskTable.ToneCuedRewardLocation(CueIdx)];
         
-    %{
-    based on BlockFixHolding with Risk and Cues based on the GUI.ToneRiskTable,
-    suggested cued are up sweep and down sweep
-    in SingleSidePoke, based on block structure to assign reward prob and
-    thus cues
-    %}
+    case 'CuedNewInformation'
+        %introduce new congruent & invongruent information
+        %assume 4 table entries for this
+        %assume first 2 entries unchanged old cue
+        %3rd and 4th entry new cues
+        NoOfValidCue = min([size(TaskParameters.GUI.ToneRiskTable.ToneStartFreq, 1), size(TaskParameters.GUI.ToneRiskTable.ToneEndFreq, 1), size(TaskParameters.GUI.ToneRiskTable.ToneCuedRewardProbability, 1)]);
+        if NoOfValidCue<=3
+            error('Too few cues for CuedNewInformation setting, this is not implemented!')
+        end
+        %randomly select cue
+        %2/3 chance of old cue
+        Old = rand(1,1)<(2/3);
+        if Old
+            CueIdx = randi(2); % select at random first or second cue
+        else %new cue
+            CueIdx = randi(2)+2; %select at random 3rd or 4th cue
+        end
+        
+        TrialData.AuditoryCue(:,iTrial) = [TaskParameters.GUI.ToneRiskTable.ToneStartFreq(CueIdx), TaskParameters.GUI.ToneRiskTable.ToneEndFreq(CueIdx)]';
+        TrialData.RewardProb(:,iTrial) = [TaskParameters.GUI.ToneRiskTable.ToneCuedRewardProbability(CueIdx), TaskParameters.GUI.ToneRiskTable.ToneCuedRewardProbability(CueIdx), TaskParameters.GUI.ToneRiskTable.ToneCuedRewardProbability(CueIdx)]';
+        TrialData.CorrectLocation(iTrial) = [TaskParameters.GUI.ToneRiskTable.ToneCuedRewardLocation(CueIdx)];
+
+
     case 'BlockCued'
         if iTrial == 1
             TrialData.BlockNumber(iTrial) = 1;
@@ -399,7 +416,8 @@ switch TaskParameters.GUIMeta.RiskType.String{TaskParameters.GUI.RiskType}
 end
 
 TaskParameters.GUI.RewardProbActualLeft = TrialData.RewardProb(1,iTrial);
-TaskParameters.GUI.RewardProbActualRight = TrialData.RewardProb(2,iTrial);
+TaskParameters.GUI.RewardProbActualCenter = TrialData.RewardProb(2,iTrial);
+TaskParameters.GUI.RewardProbActualRight = TrialData.RewardProb(3,iTrial);
 
 %{ Should not adjust RewardProb in 1-arm task as some codes use (i-1)th values
 % if TrialData.LightLeft(iTrial) == 1 
@@ -408,7 +426,7 @@ TaskParameters.GUI.RewardProbActualRight = TrialData.RewardProb(2,iTrial);
 %     TrialData.RewardProb(1,iTrial) = 0;
 % end}
 
-TrialData.Baited(:, iTrial) = rand(2, 1) < TrialData.RewardProb(:, iTrial); % only logicals 
+TrialData.Baited(:, iTrial) = rand(3, 1) < TrialData.RewardProb(:, iTrial); % only logicals 
 % switch TaskParameters.GUIMeta.RiskType.String{TaskParameters.GUI.RiskType}
 %     case 'BlockRandHolding'
 %         if TrialData.BlockTrialNumber(iTrial) ~= 1
@@ -440,7 +458,7 @@ TrialData.Baited(:, iTrial) = rand(2, 1) < TrialData.RewardProb(:, iTrial); % on
 % end
 
 if TaskParameters.GUI.ExpressedAsExpectedValue
-    TrialData.Baited(:, iTrial) = true(2, 1);
+    TrialData.Baited(:, iTrial) = true(3, 1);
 end
 
 % if TrialData.LightLeft(iTrial) == 1 % i.e. SingleSidePoke is true; holding will be overwritten
@@ -451,7 +469,7 @@ end
 
 TrialData.AvailableReward(:, iTrial) = TrialData.Baited(:,iTrial); % Before trial, the two variables is the same. Only changed after the trial
 
-TrialData.RewardMagnitude(:, iTrial) = [TaskParameters.GUI.RewardAmount, TaskParameters.GUI.RewardAmount]'; % first index is for left or right poke
+TrialData.RewardMagnitude(:, iTrial) = [TaskParameters.GUI.RewardAmount, TaskParameters.GUI.RewardAmount, TaskParameters.GUI.RewardAmount]'; % first index is for left or right poke
 if TrialData.LightLeft(iTrial) == 1 % adjustment by SingleSidePoke, i.e. 1-arm bandit
     TrialData.RewardMagnitude(2, iTrial) = 0;
 elseif TrialData.LightLeft(iTrial) == 0
@@ -465,7 +483,8 @@ else
 end
 
 TrialData.RewardMagnitudeL(iTrial) = TrialData.RewardMagnitude(1, iTrial);
-TrialData.RewardMagnitudeR(iTrial) = TrialData.RewardMagnitude(2, iTrial);
+TrialData.RewardMagnitudeC(iTrial) = TrialData.RewardMagnitude(2, iTrial);
+TrialData.RewardMagnitudeR(iTrial) = TrialData.RewardMagnitude(3, iTrial);
 
 TrialData.Rewarded(iTrial) = NaN; % true if a non-zero reward is delivered, NaN if no choice made
 
